@@ -7,12 +7,12 @@ public static class LinqExtensions {
 
         public Result SelectMany(Func<object?, Result> bind) => result switch {
             ISuccess => bind(null),
-            IFailure f => f.Error
+            Result.Failure f => f
         };
 
         public Result SelectMany(Func<object?, Result> bind, Func<object?, object?, object?> _) => result switch {
             ISuccess => bind(null),
-            IFailure f => f.Error
+            Result.Failure f => f
         };
     }
 
@@ -62,13 +62,10 @@ public static class LinqExtensions {
 
 public static class RopExtensions {
     extension (Result result) {
-        public Result Ensure(bool predicate, Func<ResultFailure> onError) => result switch {
-            Result.Success s => predicate ? onError() : s,
+        public Result Require(bool predicate, Func<ResultFailure> onError) => result switch {
+            Result.Success s => predicate ? s : onError(),
             Result.Failure f => f
         };
-
-        public Result Require(bool predicate, Func<ResultFailure> onError) =>
-            result.Ensure(!predicate, onError);
 
         public Result OnSuccess(Action action) {
             if (result is Result.Success) {
@@ -88,13 +85,10 @@ public static class RopExtensions {
     }
 
     extension <T>(Result<T> result) {
-        public Result<T> Ensure(Func<T, bool> predicate, Func<T, ResultFailure> onError) => result switch {
-            Result<T>.Success s => predicate(s.Value) ? onError(s.Value) : s,
+        public Result<T> Require(Func<T, bool> predicate, Func<T, ResultFailure> onError) => result switch {
+            Result<T>.Success s => predicate(s.Value) ? s : onError(s.Value),
             Result<T>.Failure f => f
         };
-
-        public Result<T> Require(Func<T, bool> predicate, Func<T, ResultFailure> onError) =>
-            result.Ensure(t => !predicate(t), onError);
 
         public Option<T> ToOption() => result switch {
             ISuccess<T> s => s.Value,
