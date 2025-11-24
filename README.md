@@ -225,9 +225,14 @@ In [UnionizeNow.Rop](https://github.com/IanWold/UnionizeNow/tree/main/UnionizeNo
 Note that LINQ's `select`/`select many` are equivalent to functional bind operators (`>>=`) that are typically used in functional ROP, so implementing the LINQ methods for the `Result` union allows using the LINQ query syntax to chain business logic:
 
 ```csharp
-public class ItemService(ItemRepository repository) {
+public class ItemService(AuthService auth, ItemRepository repository) {
+    static Result ValidateId(int id) =>
+        id > 0
+        ? new Success()
+        : new ValidationError(nameof(id), "Id must be greater than 0");
+
     public Result<Item> GetItemById(int id, ClaimsPrincipal user) =>
-        from _ in Authorize(user)
+        from _ in auth.Authorize(user)
         from _ in ValidateId(id)
         from maybeDao in repository.GetItem(id)
         from dao in maybeDao.RequireSome(() => new NotFoundError($"Unable to find item {id}."))
