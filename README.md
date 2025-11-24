@@ -6,7 +6,9 @@
 
 The C# language team has been discussing adding "discriminated unions," their term for [Algebraic Data Types](https://en.wikipedia.org/wiki/Algebraic_data_type) (ADTs), for quite a while now. It appears as though this feature may begin to enter the language as soon as the next version (C# 15; releasing November 2026). However, I am impatient though, and I want to unionize now! (hence the name of this repo). This repository demonstrates one way of using source generators and analyzers to hack discriminated unions into the language. Although union types are mostly favored by the C# community, I understand there's always an amount of office politics that go into new features, and I wouldn't want to wade into this area so I want to present this repo as a completely politically neutral example of _how_ to do this.
 
-You can check out [the full example](https://github.com/IanWold/UnionizeNow/blob/main/UnionizeNow.Example/Example.cs) in this repo but I'll detail below everything I'm doing:
+You can check out [the full example](https://github.com/IanWold/UnionizeNow/blob/main/UnionizeNow.Example/Example.cs) in this repo but I'll detail below everything I'm doing.
+
+## Analyzer/Suppressor
 
 I have [demonstrated before that result types are easy to implement](https://ian.wold.guru/Posts/roll_your_own_csharp_results.html); these result types get us most of the way where we want to be. I've used in production implementations like I describe in that article, and they have worked to great success! The thing that nags me though about these result types is they require a custom `Map` implementation instead of being able to use `switch`. Something like:
 
@@ -52,6 +54,8 @@ So as to prevent this analyzer from clashing with any cases this might match tha
 ```csharp
 public abstract record Option<T> : IUnionizeNow { ... }
 ```
+
+## Source Generator
 
 Alright, so the analyzer works! I still have one pet peeve, which is that I need to fully-qualify the name `Option<T>`, or whatever my union name is, each time I want to reference some union option. This makes it a bit clunky:
 
@@ -213,3 +217,21 @@ public union DatabaseResult<T>(Found(T Value), NotFound);
 ```
 
 But until then this is not so unweildy.
+
+## Railway-Oriented Programming (ROP)
+
+In [UnionizeNow.Rop](https://github.com/IanWold/UnionizeNow/tree/main/UnionizeNow.Rop) I've included an example of what a [Railway-Oriented Programming](https://fsharpforfunandprofit.com/rop/) setup might look like using these unions.
+
+Note that LINQ's `select`/`select many` are equivalent to functional bind operators (`>>=`) that are typically used in functional ROP, so implementing the LINQ methods for the `Result` union allows using the LINQ query syntax to chain business logic:
+
+```csharp
+public class ItemService(ItemRepository repository) {
+    public Result<Item> GetItemById(int id, ClaimsPrincipal user) =>
+        from _ in Authorize(user)
+        from _ in ValidateId(id)
+        from maybeDao in repository.GetItem(id)
+        from dao in maybeDao.RequireSome(() => new NotFoundError($"Unable to find item {id}."))
+        from item in Item.From(dao)
+        select item;
+}
+```
