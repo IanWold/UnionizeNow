@@ -5,34 +5,29 @@ public static class LinqExtensions {
         public Result Select(Func<object?, object?> _) =>
             result;
 
-        public Result SelectMany(Func<object?, Result> bind) => result switch
-        {
+        public Result SelectMany(Func<object?, Result> bind) => result switch {
             ISuccess => bind(null),
             IFailure f => f.Error
         };
 
-        public Result SelectMany(Func<object?, Result> bind, Func<object?, object?, object?> _) => result switch
-        {
+        public Result SelectMany(Func<object?, Result> bind, Func<object?, object?, object?> _) => result switch {
             ISuccess => bind(null),
             IFailure f => f.Error
         };
     }
 
     extension <TOut>(Result result) {
-        public Result<TOut> Select(Func<TOut> selector) => result switch
-        {
+        public Result<TOut> Select(Func<TOut> selector) => result switch {
             ISuccess => selector(),
             IFailure f => f.Error
         };
 
-        public Result<TOut> Select(Func<object?, TOut> selector) => result switch
-        {
+        public Result<TOut> Select(Func<object?, TOut> selector) => result switch {
             ISuccess => selector(null),
             IFailure f => f.Error
         };
 
-        public Result<TOut> SelectMany(Func<object?, Result<TOut>> bind) => result switch
-        {
+        public Result<TOut> SelectMany(Func<object?, Result<TOut>> bind) => result switch {
             ISuccess => bind(null),
             IFailure f => f.Error
         };
@@ -51,8 +46,7 @@ public static class LinqExtensions {
     }
 
     extension <TMiddle, TOut>(Result result) {
-        public Result<TOut> SelectMany(Func<object?, Result<TMiddle>> bind, Func<object?, TMiddle, TOut> project) => result switch
-        {
+        public Result<TOut> SelectMany(Func<object?, Result<TMiddle>> bind, Func<object?, TMiddle, TOut> project) => result switch {
             ISuccess => bind(null).Select(m => project(null, m)),
             IFailure f => f.Error
         };
