@@ -6,8 +6,6 @@ public sealed record Error(string? Message) : ResultFailure(Message);
 public sealed record AggregateError(IEnumerable<ResultFailure> Aggregate) : ResultFailure("One or more failures returned. Expand the aggregate to see all errors.");
 public sealed record FromException(Exception Exception) : ResultFailure(Exception.Message);
 
-public sealed record Unit;
-
 public abstract partial record Result : IUnionizeNow {
     public partial record Success;
 

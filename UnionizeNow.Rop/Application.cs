@@ -3,10 +3,10 @@ using Microsoft.Extensions.Logging;
 namespace UnionizeNow.Rop;
 
 public record InvalidError(string Name, string Message) : ResultFailure(Message) {
-    public static Result<Unit> If(bool predicate, string name, string message) =>
+    public static Result If(bool predicate, string name, string message) =>
         predicate
         ? new InvalidError(name, message)
-        : new Unit();
+        : new Success();
 }
 
 public record NotFoundError(string Message) : ResultFailure(Message);
@@ -37,14 +37,14 @@ public class TodoService(ITodoRepository repository, ILogger<TodoService> logger
         from id in repository.Create(title)
         select id;
 
-    public Result<Unit> UpdateTitleById(int id, string title) =>
+    public Result UpdateTitleById(int id, string title) =>
         from vId in InvalidError.If(id < 1, nameof(id), "Id must be greater than 0.")
             .OnFailure(f => logger.LogInformation("Invalid id {Id}", id))
         from vTitle in InvalidError.If(string.IsNullOrWhiteSpace(title), nameof(title), "Must provide a title.")
         from result in repository.UpdateTitleById(id, title)
         select result;
 
-    public Result<Unit> DeleteById(int id) =>
+    public Result DeleteById(int id) =>
         from _ in InvalidError.If(id < 1, nameof(id), "Id must be greater than 0.")
             .OnFailure(f => logger.LogInformation("Invalid id {Id}", id))
         from result in repository.DeleteById(id)
@@ -65,13 +65,13 @@ public class ItemService(IItemRepository repository, ILogger<ItemService> logger
         from id in repository.Create(name)
         select id;
 
-    public Result<Unit> UpdateCompletedById(int id, bool isCompleted) =>
+    public Result UpdateCompletedById(int id, bool isCompleted) =>
         from vId in InvalidError.If(id < 1, nameof(id), "Id must be greater than 0.")
             .OnFailure(f => logger.LogInformation("Invalid id {Id}", id))
         from result in repository.UpdateCompletedById(id, isCompleted)
         select result;
 
-    public Result<Unit> UpdateNameById(int id, string name) =>
+    public Result UpdateNameById(int id, string name) =>
         from vId in InvalidError.If(id < 1, nameof(id), "Id must be greater than 0.")
             .OnFailure(f => logger.LogInformation("Invalid id {Id}", id))
         from vName in InvalidError.If(string.IsNullOrWhiteSpace(name), nameof(name), "Must provide a name.")
@@ -79,7 +79,7 @@ public class ItemService(IItemRepository repository, ILogger<ItemService> logger
         from result in repository.UpdateNameById(id, name)
         select result;
 
-    public Result<Unit> DeleteById(int id) =>
+    public Result DeleteById(int id) =>
         from _ in InvalidError.If(id < 1, nameof(id), "Id must be greater than 0.")
             .OnFailure(f => logger.LogInformation("Invalid id {Id}", id))
         from result in repository.DeleteById(id)
@@ -89,14 +89,14 @@ public class ItemService(IItemRepository repository, ILogger<ItemService> logger
 public interface ITodoRepository {
     Result<Option<IEnumerable<Todo>>> GetById(int id);
     Result<int> Create(string title);
-    Result<Unit> UpdateTitleById(int id, string title);
-    Result<Unit> DeleteById(int id);
+    Result UpdateTitleById(int id, string title);
+    Result DeleteById(int id);
 }
 
 public interface IItemRepository {
     Result<Option<TodoItem>> GetById(int id);
     Result<int> Create(string name);
-    Result<Unit> UpdateCompletedById(int id, bool isCompleted);
-    Result<Unit> UpdateNameById(int id, string name);
-    Result<Unit> DeleteById(int id);
+    Result UpdateCompletedById(int id, bool isCompleted);
+    Result UpdateNameById(int id, string name);
+    Result DeleteById(int id);
 }

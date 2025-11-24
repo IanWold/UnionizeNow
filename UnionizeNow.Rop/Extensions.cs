@@ -1,6 +1,43 @@
 namespace UnionizeNow.Rop;
 
 public static class LinqExtensions {
+    extension (Result result) {
+        public Result Select(Func<object?, object?> _) =>
+            result;
+
+        public Result SelectMany(Func<object?, Result> bind) => result switch
+        {
+            ISuccess => bind(null),
+            IFailure f => f.Error
+        };
+
+        public Result SelectMany(Func<object?, Result> bind, Func<object?, object?, object?> _) => result switch
+        {
+            ISuccess => bind(null),
+            IFailure f => f.Error
+        };
+    }
+
+    extension <TOut>(Result result) {
+        public Result<TOut> Select(Func<TOut> selector) => result switch
+        {
+            ISuccess => selector(),
+            IFailure f => f.Error
+        };
+
+        public Result<TOut> Select(Func<object?, TOut> selector) => result switch
+        {
+            ISuccess => selector(null),
+            IFailure f => f.Error
+        };
+
+        public Result<TOut> SelectMany(Func<object?, Result<TOut>> bind) => result switch
+        {
+            ISuccess => bind(null),
+            IFailure f => f.Error
+        };
+    }
+
     extension <TIn, TOut>(Result<TIn> result) {
         public Result<TOut> Select(Func<TIn, TOut> selector) => result switch {
             ISuccess<TIn> s => selector(s.Value),
@@ -9,6 +46,14 @@ public static class LinqExtensions {
 
         public Result<TOut> SelectMany(Func<TIn, Result<TOut>> selector) => result switch {
             ISuccess<TIn> s => selector(s.Value),
+            IFailure f => f.Error
+        };
+    }
+
+    extension <TMiddle, TOut>(Result result) {
+        public Result<TOut> SelectMany(Func<object?, Result<TMiddle>> bind, Func<object?, TMiddle, TOut> project) => result switch
+        {
+            ISuccess => bind(null).Select(m => project(null, m)),
             IFailure f => f.Error
         };
     }
@@ -22,6 +67,32 @@ public static class LinqExtensions {
 }
 
 public static class RopExtensions {
+    extension (Result result) {
+        public Result Ensure(bool predicate, Func<ResultFailure> onError) => result switch {
+            Result.Success s => predicate ? onError() : s,
+            Result.Failure f => f
+        };
+
+        public Result Require(bool predicate, Func<ResultFailure> onError) =>
+            result.Ensure(!predicate, onError);
+
+        public Result OnSuccess(Action action) {
+            if (result is Result.Success) {
+                action();
+            }
+
+            return result;
+        }
+
+        public Result OnFailure(Action<ResultFailure> action) {
+            if (result is Result.Failure failure) {
+                action(failure.Error);
+            }
+
+            return result;
+        }
+    }
+
     extension <T>(Result<T> result) {
         public Result<T> Ensure(Func<T, bool> predicate, Func<T, ResultFailure> onError) => result switch {
             Result<T>.Success s => predicate(s.Value) ? onError(s.Value) : s,
