@@ -19,7 +19,7 @@ public static class Class1 {
         ? new Scab()
         : new Side.Unionist(name);
 
-    // This will trigger compiler warning:
+    // This will trigger compiler warning as the switch is incomplete:
     public static bool IsUnionistIncomplete() => ChooseSide() switch {
         IScab => true
     };
