@@ -1,4 +1,8 @@
-# UnionizeNow
+<div align="center">
+  <img src="https://raw.githubusercontent.com/IanWold/UnionizeNow/main/Icon.png" height="64">
+  <h1>UnionizeNow</h1>
+</div>
+
 
 The C# language team has been discussing adding "discriminated unions," their term for [Algebraic Data Types](https://en.wikipedia.org/wiki/Algebraic_data_type) (ADTs), for quite a while now. It appears as though this feature may begin to enter the language as soon as the next version (C# 15; releasing November 2026). However, I am impatient though, and I want to unionize now! (hence the name of this repo). This repository demonstrates one way of using source generators and analyzers to hack discriminated unions into the language. Although union types are mostly favored by the C# community, I understand there's always an amount of office politics that go into new features, and I wouldn't want to wade into this area so I want to present this repo as a completely politically neutral example of _how_ to do this.
 
