@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/IanWold/UnionizeNow/refs/heads/main/Icon.png" height="64">
+  <img src="https://raw.githubusercontent.com/IanWold/UnionizeNow/refs/heads/main/Icon.png" height="128">
   <h1>UnionizeNow</h1>
 </div>
 
