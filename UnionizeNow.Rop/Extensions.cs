@@ -24,10 +24,7 @@ public static class LinqExtensions {
 public static class RopExtensions {
     extension <T>(Result<T> result) {
         public Result<T> Ensure(Func<T, bool> predicate, Func<T, ResultFailure> onError) => result switch {
-            Result<T>.Success s => predicate(s.Value) switch {
-                true => onError(s.Value),
-                false => s
-            },
+            Result<T>.Success s => predicate(s.Value) ? onError(s.Value) : s,
             Result<T>.Failure f => f
         };
 
@@ -39,9 +36,17 @@ public static class RopExtensions {
             IFailure => new None()
         };
 
-        public Result<T> Tap(Action<T> action) {
+        public Result<T> OnSuccess(Action<T> action) {
             if (result is Result<T>.Success success) {
                 action(success.Value);
+            }
+
+            return result;
+        }
+
+        public Result<T> OnFailure(Action<ResultFailure> action) {
+            if (result is Result<T>.Failure failure) {
+                action(failure.Error);
             }
 
             return result;
@@ -49,18 +54,15 @@ public static class RopExtensions {
     }
 
     extension <T>(Option<T> option) {
-        public Result<T> RequireSome(Func<ResultFailure> onError) => option switch {
+        public Result<T> ToResult(Func<Result<T>> onNone) => option switch {
             ISome<T> s => s.Value,
-            INone => onError()
+            INone => onNone()
         };
     }
 
     extension <T>(Result<Option<T>> result) {
-        public Result<T> RequireSome(Func<ResultFailure> onError) => result switch {
-            ISuccess<Option<T>> o => o.Value switch {
-                ISome<T> s => s.Value,
-                INone => onError()
-            },
+        public Result<T> ToResult(Func<Result<T>> onNone) => result switch {
+            ISuccess<Option<T>> s => s.Value.ToResult(onNone),
             IFailure f => f.Error
         };
     }
