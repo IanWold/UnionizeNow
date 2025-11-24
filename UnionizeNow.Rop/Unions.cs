@@ -1,14 +1,12 @@
 ﻿namespace UnionizeNow.Rop;
 
 public abstract record ResultFailure(string? Message);
-
 public sealed record Error(string? Message) : ResultFailure(Message);
 public sealed record AggregateError(IEnumerable<ResultFailure> Aggregate) : ResultFailure("One or more failures returned. Expand the aggregate to see all errors.");
 public sealed record FromException(Exception Exception) : ResultFailure(Exception.Message);
 
 public abstract partial record Result : IUnionizeNow {
     public partial record Success;
-
     public partial record Failure(ResultFailure Error);
 
     public static implicit operator Result(ResultFailure failureValue) => new Failure(failureValue);
